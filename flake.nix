@@ -22,11 +22,14 @@
             matplotlib = pyprev.matplotlib.overridePythonAttrs (oldAttrs: {
               inherit version;
               doCheck = false;
-              postPatch = (oldAttrs.postPatch or "") + ''
+              postPatch = (oldAttrs.postPatch or "") + final.lib.optionalString (final.lib.hasPrefix "3.10." version) ''
                 substituteInPlace pyproject.toml \
                   --replace-fail "meson-python>=0.13.1,<0.17.0" meson-python
               '';
-              mesonFlags = builtins.filter (flag: flag != "-Dsystem-libraqm=true") oldAttrs.mesonFlags;
+              mesonFlags =
+                if final.lib.hasPrefix "3.10." version
+                then builtins.filter (flag: flag != "-Dsystem-libraqm=true") oldAttrs.mesonFlags
+                else oldAttrs.mesonFlags;
               src = pyfinal.fetchPypi { inherit version hash; pname = "matplotlib"; };
             });
           })
